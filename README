@@ -1,0 +1,87 @@
+csv.erl
+=======
+
+csv.erl is the erlang library for csv records manipulating (rfc4180).
+
+
+API
+==========
+
+make/2
+    Make a CSV text record from supplied fields.
+
+parse/2
+    Parse a CSV text record into fields.
+
+get_rec/2
+    Get a CSV record from a Fio.
+
+get_recs/2
+    Get all CSV records from a Fio.
+
+get_frecs/2
+    Get all CSV records from a file.
+
+All functions get a csv record as the first argument. It contain the next fields:
+
+sep
+    a field separator
+    "," - by default
+quote
+    a quote construct
+    "\"" - by default
+eor
+    an end of record construct
+    "\n" - by default
+cb_make
+    a callback for make/2.
+    undefined - by default
+cb_parse
+    a callback for parse/2 (used by get_rec/2, get_recs/2, get_frecs/2).
+    undefined - by default
+
+
+Examples
+==========
+
+The example csv file used in examples:
+
+one,11,info1
+two,22,info2
+
+Make a csv record from fields:
+
+1> csv:make(#csv{}, [1,2,3]).
+{ok, "1,2,3\n"}
+
+Make a csv record from fields with ; as a separator:
+
+1> csv:make(#csv{sep = ";"}, [1,2,3]).
+{ok, "1;2;3\n"}
+
+Make a csv record from a tuple:
+
+1> F = fun(_Opts, Rec) -> {ok, tuple_to_list(Rec)} end.
+#Fun<erl_eval.12.80484245>
+2> csv:make(#csv{cb_make=F}, {1,2,3}).
+{ok,"1,2,3\n"}
+
+Read all records from a file:
+
+1> csv:get_frecs(#csv{}, "ex.csv").
+{ok,[["one","11","info1"],["two","22","info2"]]}
+
+Read all records as tuples from a file:
+
+1> F = fun(_Opts, Rec) -> {ok, list_to_tuple(Rec)} end.
+#Fun<erl_eval.12.80484245>
+2> csv:get_frecs(#csv{cb_parse=F}, "ex.csv").
+{ok,[{"one","11","info1"},{"two","22","info2"}]}
+
+Read all records as records from a file:
+
+13> F = fun(_Opts, Rec) -> csv:cb_list_to_rec(Rec, my_rec) end. 
+#Fun<erl_eval.12.80484245>
+14> csv:get_frecs(#csv{cb_parse=F}, "ex.csv").            
+{ok,[{my_rec, "one","11","info1"},
+     {my_rec, "two","22","info2"}]}
