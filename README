@@ -4,6 +4,12 @@ csv.erl
 csv.erl is the erlang library for csv records manipulating (rfc4180).
 
 
+Build
+==========
+
+make && make test
+
+
 API
 ==========
 
@@ -39,6 +45,32 @@ cb_make
 cb_parse
     a callback for parse/2 (used by get_rec/2, get_recs/2, get_frecs/2).
     undefined - by default
+
+
+Callbacks
+==========
+
+A callback take two arguments:
+
+Opts
+    csv record (see csv.hrl).
+Rec
+    a record.
+
+And must return:
+
+{ok, Rec_new}
+    a converted record.
+{error, Reason}
+    an error.
+
+For a make/2 callback, Rec is a user supplied record from a second make/2
+argument. Rec_new for a make/2 callback is a list of fields to make a CSV
+record from.
+
+For a parse/2 callback, Rec is a list of fields we parsed from a user supplied
+text from a second parse/2 argument (a CSV text record). Rec_new for a parse/2
+callback is a parsed record in a user format.
 
 
 Examples
