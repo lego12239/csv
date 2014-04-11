@@ -1,4 +1,4 @@
-.PHONY: build test clean
+.PHONY: build test clean doc
 
 build:
 	rebar compile
@@ -14,3 +14,5 @@ clean:
 	rm -f test/test.beam
 	rebar clean
 
+doc:
+	rebar doc
