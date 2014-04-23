@@ -64,10 +64,14 @@ And must return:
 {error, Reason}
     an error.
 
+make/2 callback is called before the main make/2 code and must convert a user
+supplied data to a list of fields with which make/2 works.
 For a make/2 callback, Rec is a user supplied record from a second make/2
 argument. Rec_new for a make/2 callback is a list of fields to make a CSV
 record from.
 
+parse/2 callback is called after the main parse/2 code and must convert a list
+of fields to a user data format.
 For a parse/2 callback, Rec is a list of fields we parsed from a user supplied
 text from a second parse/2 argument (a CSV text record). Rec_new for a parse/2
 callback is a parsed record in a user format.
