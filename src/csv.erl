@@ -1,4 +1,5 @@
 %% @doc Comma-separated values manipulation library (rfc4180).
+%% @headerfile "csv.hrl"
 %%
 -module(csv).
 
@@ -21,13 +22,10 @@
 %% API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @spec (Options, Rec) -> {ok, String} | {error, Reason} where
-%%
-%%   Options = csv(),
-%%   Rec = [Field()] | tuple(),
-%%   Field = string() | integer() | atom(),
-%%   String = string(),
-%%   Reason = any()
+-type field() :: string() | integer() | atom().
+-type rec() :: [field()] | tuple().
+
+-spec make(csv(), rec()) -> {ok, string()} | {error, Reason::any()}.
 %%
 %% @doc Make a CSV text record from supplied fields.
 %%
@@ -51,12 +49,7 @@ make(Opts, [H|T], Acc) ->
     end.
 
 
-%% @spec (Opts, Rec, Fio) -> ok | {error, Reason} where
-%%   Opts = csv(),
-%%   Fio = io_device(),
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec put_rec(csv(), rec(), file:io_device()) -> ok | {error, Reason::any()}.
 %%
 %% @doc Put a CSV record into a Fio.
 %%
@@ -69,13 +62,8 @@ put_rec(Opts, Rec, Fio) ->
     end.
 
 
-%% @spec (Opts, Recs, Fio) -> ok | {error, Reason} where
-%%   Opts = csv(),
-%%   Fio = io_device(),
-%%   Recs = [Rec],
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec put_recs(csv(), Recs::[rec()], file:io_device()) -> ok |
+							  {error, Reason::any()}.
 %%
 %% @doc Put all CSV records into a Fio.
 %%
@@ -90,27 +78,15 @@ put_recs(Opts, [Rec|T], Fio) ->
     end.
 
 
-%% @spec (Opts, Recs, Fname) -> ok | {error, Reason} where
-%%   Opts = csv(),
-%%   Fname = string(),
-%%   Recs = [Rec],
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec put_frecs(csv(), [rec()], string()) -> ok | {error, Reason::any()}.
 %%
 %% @doc Put all CSV records into a file. Open a file with [append] modes.
 %%
 put_frecs(Opts, Recs, Fname) ->
     put_frecs(Opts, Recs, Fname, [append]).
 
-%% @spec (Opts, Recs, Fname, Fmodes) -> ok | {error, Reason} where
-%%   Opts = csv(),
-%%   Fname = string(),
-%%   Fmodes = [atom()],
-%%   Recs = [Rec],
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec put_frecs(csv(), [rec()], string(), [atom()]) -> ok |
+						       {error, Reason::any()}.
 %%
 %% @doc Put all CSV records into a file. Open a file with Fmodes modes.
 %%
@@ -125,12 +101,7 @@ put_frecs(Opts, Recs, Fname, Fmodes) ->
     end.
 
 
-%% @spec (Opts, Line) -> {ok, Rec} | {error, Reason} where
-%%   Opts = csv(),
-%%   Line = string(),
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec parse(csv(), string()) -> {ok, [string()]} | {error, Reason::any()}.
 %%
 %% @doc Parse a CSV text record into fields.
 %%
@@ -198,12 +169,9 @@ parse(Opts, #csv_state{state = rend, rec_out = Rec} = State) ->
     call_cb(Opts#csv.cb_parse, Opts, lists:reverse(Rec)).
 
 
-%% @spec (Opts, Fio) -> eof | {ok, Rec} | {error, Reason} where
-%%   Opts = csv(),
-%%   Fio = io_device(),
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec get_rec(csv(), file:io_device()) -> eof |
+					  {ok, Rec::[string()]} |
+					  {error, Reason::any()}.
 %%
 %% @doc Get a CSV record from a Fio.
 %%
@@ -243,13 +211,9 @@ get_rec(Opts, Fio, State, Lnum, Prev_ret) ->
     end.
 
 
-%% @spec (Opts, Fio) -> eof | {ok, Recs} | {error, Reason} where
-%%   Opts = csv(),
-%%   Fio = io_device(),
-%%   Recs = [Rec],
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom()
+-spec get_recs(csv(), file:io_device()) -> eof |
+					   {ok, Recs::[[string()]]} |
+					   {error, Reason::any()}.
 %%
 %% @doc Get all CSV records from a Fio.
 %%
@@ -264,14 +228,9 @@ get_recs(_Opts, _Fio, _Recs, {error, Reason, _State, Lnum}) ->
     {error, [{error, Reason}, {at_line, Lnum}]}.
 
 
-%% @spec (Opts, Fname) -> eof | {ok, Recs} | {error, Reason} where
-%%   Opts = csv(),
-%%   Fname = string(),
-%%   Recs = [Rec],
-%%   Rec = [Field()],
-%%   Field = string() | integer() | atom(),
-%%   Reason = string() | atom(),
-%%   State = csv_state()
+-spec get_frecs(csv(), string()) -> eof |
+				    {ok, Recs::[[string()]]} |
+				    {error, Reason::any()}.
 %%
 %% @doc Get all CSV records from a file.
 %%
@@ -289,9 +248,7 @@ get_frecs(Opts, Fname) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Example callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-%% @spec (Rec) -> {ok, List}
-%%   Rec = tuple(),
-%%   List = [any()]
+-spec cb_rec_to_list(tuple()) -> {ok, list()}.
 %%
 %% @doc Convert a record Rec to a list and remove first element after
 %%      it (a record name).
@@ -300,10 +257,7 @@ cb_rec_to_list(Rec) ->
     {ok, tl(tuple_to_list(Rec))}.
 
 
-%% @spec (Rec, Rec_name) -> {ok, Record}
-%%   Rec = [string()],
-%%   Rec_name = atom(),
-%%   Record = tuple()
+-spec cb_list_to_rec([string()], atom()) -> {ok, tuple()}.
 %%
 %% @doc Convert a list of fields to a record with Rec_name name.
 %%
@@ -314,12 +268,8 @@ cb_list_to_rec(Rec, Rec_name) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internals
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% @spec (Func, Opts, Rec) -> {ok, Record} | {error, Reason} where
-%%   Func = undefined | fun(),
-%%   Opts = csv(),
-%%   Rec = any(),
-%%   Record = any(),
-%%   Reason = any()
+-spec call_cb(undefined | fun(), csv(), any()) -> {ok, Record::any()} |
+						  {error, Reason::any()}.
 %%
 %% @doc Call a Func if it's not undefined.
 %%
@@ -337,10 +287,7 @@ call_cb(Func, Opts, Rec) ->
     end.
 
 
-%% @spec (Opts, F) -> F_new where
-%%   Opts = csv(),
-%%   F = string() | integer() | float(),
-%%   F_new = string()
+-spec mk_field(csv(), field()) -> string().
 %%
 %% @doc Make an escaped and quoted CSV field from F string.
 %%
@@ -451,10 +398,7 @@ proc_eor(Opts, #csv_state{quote_fl = 1, line_in = Line} = State, Idx_eor) ->
 					    field = Field_new}}.
 
 
-%% @spec (Strs, Str) -> String | false where
-%%   Strs = [string()],
-%%   Str = string(),
-%%   String = string()
+-spec get_prefix([string()], string()) -> string() | false.
 %%
 %% @doc Find a one of strings from Strs at a start of Str.
 %%      Return a matched string from Strs or false otherwise.

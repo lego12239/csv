@@ -40,6 +40,7 @@ get_recs/2
 get_frecs/2
     Get all CSV records from a file.
 
+See details in doc/index.html (created by "make doc" command).
 All functions get a csv record as the first argument. It contain the next fields:
 
 sep
