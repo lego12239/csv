@@ -16,6 +16,18 @@ API
 make/2
     Make a CSV text record from supplied fields.
 
+put_rec/3
+    Put a CSV record into a Fio.
+
+put_recs/3
+    Put all CSV records into a Fio.
+
+put_frecs/3
+    Put all CSV records into a file. Open a file with [append] modes.
+
+put_frecs/4
+    Put all CSV records into a file. Open a file with supplied modes.
+
 parse/2
     Parse a CSV text record into fields.
 
@@ -101,6 +113,12 @@ Make a csv record from a tuple:
 #Fun<erl_eval.12.80484245>
 2> csv:make(#csv{cb_make=F}, {1,2,3}).
 {ok,"1,2,3\n"}
+
+Append csv records into a file:
+
+1> csv:put_frecs(#csv{}, [[1, 2, "field"], [yet, "another", row]], "testfile").
+ok
+
 
 Read all records from a file:
 

@@ -2,7 +2,8 @@
 %%
 -module(csv).
 
--export([make/2, parse/2, get_rec/2, get_recs/2, get_frecs/2]).
+-export([make/2, put_rec/3, put_recs/3, put_frecs/3, put_frecs/4,
+	 parse/2, get_rec/2, get_recs/2, get_frecs/2]).
 -export([cb_rec_to_list/1, cb_list_to_rec/2]).
 
 -include_lib("csv/include/csv.hrl").
@@ -20,9 +21,11 @@
 %% API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @spec (Options, Rec) -> {ok, String} | {error, Reason}
+%% @spec (Options, Rec) -> {ok, String} | {error, Reason} where
+%%
 %%   Options = csv(),
-%%   Rec = [string()] | tuple(),
+%%   Rec = [Field()] | tuple(),
+%%   Field = string() | integer() | atom(),
 %%   String = string(),
 %%   Reason = any()
 %%
@@ -48,10 +51,85 @@ make(Opts, [H|T], Acc) ->
     end.
 
 
+%% @spec (Opts, Rec, Fio) -> ok | {error, Reason} where
+%%   Opts = csv(),
+%%   Fio = io_device(),
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
+%%   Reason = string() | atom()
+%%
+%% @doc Put a CSV record into a Fio.
+%%
+put_rec(Opts, Rec, Fio) ->
+    case make(Opts, Rec) of
+	{ok, Str} ->
+	    file:write(Fio, Str);
+	Ret ->
+	    Ret
+    end.
+
+
+%% @spec (Opts, Recs, Fio) -> ok | {error, Reason} where
+%%   Opts = csv(),
+%%   Fio = io_device(),
+%%   Recs = [Rec],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
+%%   Reason = string() | atom()
+%%
+%% @doc Put all CSV records into a Fio.
+%%
+put_recs(_Opts, [], _Fio) ->
+    ok;
+put_recs(Opts, [Rec|T], Fio) ->
+    case put_rec(Opts, Rec, Fio) of
+	ok ->
+	    put_recs(Opts, T, Fio);
+	Ret ->
+	    Ret
+    end.
+
+
+%% @spec (Opts, Recs, Fname) -> ok | {error, Reason} where
+%%   Opts = csv(),
+%%   Fname = string(),
+%%   Recs = [Rec],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
+%%   Reason = string() | atom()
+%%
+%% @doc Put all CSV records into a file. Open a file with [append] modes.
+%%
+put_frecs(Opts, Recs, Fname) ->
+    put_frecs(Opts, Recs, Fname, [append]).
+
+%% @spec (Opts, Recs, Fname, Fmodes) -> ok | {error, Reason} where
+%%   Opts = csv(),
+%%   Fname = string(),
+%%   Fmodes = [atom()],
+%%   Recs = [Rec],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
+%%   Reason = string() | atom()
+%%
+%% @doc Put all CSV records into a file. Open a file with Fmodes modes.
+%%
+put_frecs(Opts, Recs, Fname, Fmodes) ->
+    case file:open(Fname, Fmodes) of
+	{ok, F} ->
+	    Ret = put_recs(Opts, Recs, F),
+	    file:close(F),
+	    Ret;
+	Ret ->
+	    Ret
+    end.
+
+
 %% @spec (Opts, Line) -> {ok, Rec} | {error, Reason} where
 %%   Opts = csv(),
 %%   Line = string(),
-%%   Rec = [Field],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
 %%   Reason = string() | atom()
 %%
 %% @doc Parse a CSV text record into fields.
@@ -123,7 +201,8 @@ parse(Opts, #csv_state{state = rend, rec_out = Rec} = State) ->
 %% @spec (Opts, Fio) -> eof | {ok, Rec} | {error, Reason} where
 %%   Opts = csv(),
 %%   Fio = io_device(),
-%%   Rec = [string()],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
 %%   Reason = string() | atom()
 %%
 %% @doc Get a CSV record from a Fio.
@@ -168,7 +247,8 @@ get_rec(Opts, Fio, State, Lnum, Prev_ret) ->
 %%   Opts = csv(),
 %%   Fio = io_device(),
 %%   Recs = [Rec],
-%%   Rec = [string()],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
 %%   Reason = string() | atom()
 %%
 %% @doc Get all CSV records from a Fio.
@@ -184,11 +264,12 @@ get_recs(_Opts, _Fio, _Recs, {error, Reason, _State, Lnum}) ->
     {error, [{error, Reason}, {at_line, Lnum}]}.
 
 
-%% @spec (Opts, Fname) -> eof | {ok, Recs} | {error, Reason} | {error, Reason, State} where
+%% @spec (Opts, Fname) -> eof | {ok, Recs} | {error, Reason} where
 %%   Opts = csv(),
 %%   Fname = string(),
 %%   Recs = [Rec],
-%%   Rec = [string()],
+%%   Rec = [Field()],
+%%   Field = string() | integer() | atom(),
 %%   Reason = string() | atom(),
 %%   State = csv_state()
 %%
