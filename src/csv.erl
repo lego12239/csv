@@ -164,8 +164,8 @@ parse(Opts, #csv_state{state = fdata, line_in = Line, rec_out = Rec,
 		    Result
 	    end
     end;
-parse(Opts, #csv_state{state = rend, rec_out = Rec} = State) ->
-    ?dbg("State: ~p~n", [State]),
+parse(Opts, #csv_state{state = rend, rec_out = Rec} = _State) ->
+    ?dbg("State: ~p~n", [_State]),
     call_cb(Opts#csv.cb_parse, Opts, lists:reverse(Rec)).
 
 
