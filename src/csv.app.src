@@ -1,7 +1,7 @@
 {application, csv,
  [
   {description, "An Erlang csv library"},
-  {vsn, "1.1.1"},
+  {vsn, "1.1.2"},
   {modules, [
              csv
             ]},
