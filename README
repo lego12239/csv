@@ -140,3 +140,22 @@ Read all records as records from a file:
 14> csv:get_frecs(#csv{cb_parse=F}, "ex.csv").            
 {ok,[{my_rec, "one","11","info1"},
      {my_rec, "two","22","info2"}]}
+
+
+Write records to a file(convert each field from unicode to utf8):
+
+25> Ff = fun(Field) when is_list(Field) ->
+25>   Bin = unicode:characters_to_binary(Field),
+25>   binary_to_list(Bin);
+25> (Field) ->
+25>   Field
+25> end.
+#Fun<erl_eval.6.50752066>
+26> Fr = fun(_Opts, Rec) ->
+26>   {ok, lists:map(Ff, Rec)}
+26> end.
+#Fun<erl_eval.12.50752066>
+27> csv:put_frecs(#csv{cb_make=Fr}, [["Тест", 1233]], "test.csv").
+ok
+28> csv:put_frecs(#csv{cb_make=Fr}, [["我", 123]], "test.csv").
+ok
