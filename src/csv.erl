@@ -38,15 +38,12 @@ make(Opts, Rec) ->
     end.
 
 make(Opts, [], Acc) ->
-    Acc ++ Opts#csv.eor;
+	% replace first , with \n and make a record
+	[_|Rec] = Acc,
+	lists:flatten(lists:reverse([Opts#csv.eor|Rec]));
 make(Opts, [H|T], Acc) ->
     F = mk_field(Opts, H),
-    case Acc of
-	[] ->
-	    make(Opts, T, F);
-	_ ->
-	    make(Opts, T, Acc ++ Opts#csv.sep ++ F)
-    end.
+	make(Opts, T, [Opts#csv.sep, F|Acc]).
 
 
 -spec put_rec(csv(), rec(), file:io_device()) -> ok | {error, Reason::any()}.
