@@ -176,8 +176,10 @@ get_rec(Opts, Fio) ->
     case get_rec(Opts, Fio, 1) of
 	{error, Reason, _State, _Lnum} ->
 	    {error, Reason};
-	Ret ->
-	    Ret
+	{ok, Rec, _Lnum} ->
+	    {ok, Rec};
+	Other ->
+		Other
     end.
 
 get_rec(Opts, Fio, Lnum) ->
